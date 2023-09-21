@@ -19,10 +19,11 @@ const httpServer = createServer();
 const app = express();
 
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '\\index.html');
+    const indexPath = path.join(__dirname, 'index.html')
+    res.sendFile(indexPath);
 })
 
-app.listen(8000, () => console.log('listening on port 8000'));
+app.listen(8000, () => console.log('listening on port http://localhost:8000'));
 httpServer.listen(9000, () => console.log('listening on http://localhost:9000'))
 
 //clients and games hashmap we are storing this in memory 😥
