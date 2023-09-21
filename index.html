@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Room</title>
+    <style>
+        input, button {
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h2>Game Room</h2>
+    <button id="createButton">New Game</button>
+    <br>
+    <input type="text" name="gameId" id="gameId" placeholder="game id here">
+    <button id="joinButton">Join Game</button>
+    <script>
+        let client = {};
+        let game = {};
+        let ws = new WebSocket('ws://localhost:9000')
+        ws.onmessage = (message) => {
+            const response = JSON.parse(message.data)
+            console.log(response)
+            if (response.method === 'connect') {
+                client = response.client;
+                console.log('client Connected ', client)
+            }
+            else if (response.method === 'create') {
+                game = response.game;
+                console.log('game created ', game)
+            }
+        }
+
+        //html element
+        const buttonCreate = document.getElementById('createButton');
+        const joinButton = document.getElementById('joinButton');
+        const textJoinGame = document.getElementById('gameId')
+
+        //wiring the new create event with create new game button
+        buttonCreate.addEventListener('click', (event) => {
+            const payload = {
+                method: "create",
+                clientId: client.id
+            }
+
+            ws.send(JSON.stringify(payload))
+        })
+
+        joinButton.addEventListener('click', (event) => {
+            if (!game.id) {
+                console.log('here'+  textJoinGame.value)
+                game.id = textJoinGame.value
+
+            }
+            const payload = {
+                method: "join",
+                clientId: client.id,
+                gameId : game.id
+            }
+
+            ws.send(JSON.stringify(payload))
+        })
+    </script>
+</body>
+</html>
