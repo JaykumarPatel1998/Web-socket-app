@@ -8,15 +8,17 @@ import Game from './model/game.mjs';
 import { GameMapper, clientMapper } from './entityToDtoMapper/EntityToDtoMapper.mjs';
 import ClientDto from './dto/clientDto.mjs';
 import GameDto from './dto/gameDto.mjs';
+import GameInstance from './model/gameInstance.mjs';
+import generateRandomSentence from './utils/sentenceBot.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 
 const WebSocketServer = server
 const httpServer = createServer();
 
 const app = express();
+app.use(express.static('public'))
 
 app.get('/', (req, res) => {
     const indexPath = path.join(__dirname, 'index.html')
@@ -30,6 +32,7 @@ httpServer.listen(9000, () => console.log('listening on http://localhost:9000'))
 //these are server objects
 const clients = {}
 const games = {}
+const gameInstance = new GameInstance()
 
 const ws = new WebSocketServer({
     httpServer: httpServer
@@ -81,11 +84,15 @@ function createGameLobby(result) {
     const clientId = result.clientId
     const gameId = guid()
     games[gameId] = new Game(gameId)
+    for (let i = 0; i < 10; i++) {
+        gameInstance.correctStrings.push(generateRandomSentence())
+    }
 
     const payload = {
         "method": "create",
         "game": GameMapper(games[gameId])
     }
+
     const con = clients[clientId].connection
     con.send(JSON.stringify(payload))
 }
@@ -96,9 +103,7 @@ function joinGameLobby(result) {
     const clientId = result.clientId;
     const gameId = result.gameId;
     const game = games[gameId];
-    ClientDto.printClientArray(clients)
-    GameDto.printGameArray(games)
-    if (game.clients.length >= 3) {
+    if (game.clients.length >= 2) {
         //sorry max players reached
         return
     } else {
@@ -107,14 +112,24 @@ function joinGameLobby(result) {
         game.clients.push(clients[clientId])
         const payload = {
             "method": "join",
-            "game": GameMapper(game)
+            "game": GameMapper(game),
         }
 
         game.clients.forEach(client => {
             client.connection.send(JSON.stringify(payload))
         })
-    }
 
+        if(game.clients.length == 2) {
+            GameDto.printGameArray(games)
+            const playPayload = {
+                method: "play",
+                gameInstance
+            }
+            game.clients.forEach(client => {
+                client.connection.send(JSON.stringify(playPayload))
+            })
+        }
+    }
 }
 
 const guid = () => {

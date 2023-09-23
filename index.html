@@ -1,67 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Room</title>
+    <title>typepeer.io</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
     <style>
-        input, button {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #222222 50%, #282528);
+            padding: 2rem;
+            color: white;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        h1 {
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            font-size: 3rem;
+        }
+
+        #roundCard {
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+
+        .gameContainer {
+            display: grid;
+            grid-template-columns: auto;
+            gap: 2rem;
+        }
+
+        .gameContainer div {
             padding: 1rem;
+            border: 1px dashed white;
+            box-shadow: 12px 12px 2px 1px rgba(136, 136, 136, 0.2);
+        }
+
+        .gameContainer div * {
+            margin: 0.2rem;
+        }
+
+        button {
+            padding: 0.7rem;
+            background-color: rgb(56, 120, 63);
+            cursor: crosshair;
+            font-family: monospace;
+            font-size: 1rem;
+            transition: transform 0.25s;
+        }
+
+        button:hover {
+            transform: scale(120%);
+            outline: none;
+        }
+
+        .displayNone {
+            display: none;
+        }
+
+        input[type="text"] {
+            background-color: transparent;
+            border: none;
+            transition: all 0.2s;
+            padding-bottom: 0.7rem;
+            color: azure;
+            font-size: 1rem;
+        }
+
+        input[type="text"]:is(:hover, :focus, :active) {
+            outline: none;
+            /* border-bottom: 1px solid white; */
+            padding-bottom: 1rem;
+        }
+
+        #code {
+            width: 300px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            padding: 5px;
+            outline: 1px solid white;
+        }
+
+        #copy {
+            border: 1px solid white;
+            padding: 1px;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+
+        #copy:hover,
+        #copy:active,
+        #copy:focus {
+            opacity: 1;
+        }
+
+        #inputtext {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        #gamePrompt {
+            text-align: center;
+        }
+
+        .unselectable {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
     </style>
 </head>
+
 <body>
-    <h2>Game Room</h2>
-    <button id="createButton">New Game</button>
-    <br>
-    <input type="text" name="gameId" id="gameId" placeholder="game id here">
-    <button id="joinButton">Join Game</button>
-    <script>
-        let client = {};
-        let game = {};
-        let ws = new WebSocket('ws://localhost:9000')
-        ws.onmessage = (message) => {
-            const response = JSON.parse(message.data)
-            console.log(response)
-            if (response.method === 'connect') {
-                client = response.client;
-                console.log('client Connected ', client)
-            }
-            else if (response.method === 'create') {
-                game = response.game;
-                console.log('game created ', game)
-            }
-        }
-
-        //html element
-        const buttonCreate = document.getElementById('createButton');
-        const joinButton = document.getElementById('joinButton');
-        const textJoinGame = document.getElementById('gameId')
-
-        //wiring the new create event with create new game button
-        buttonCreate.addEventListener('click', (event) => {
-            const payload = {
-                method: "create",
-                clientId: client.id
-            }
-
-            ws.send(JSON.stringify(payload))
-        })
-
-        joinButton.addEventListener('click', (event) => {
-            if (!game.id) {
-                console.log('here'+  textJoinGame.value)
-                game.id = textJoinGame.value
-
-            }
-            const payload = {
-                method: "join",
-                clientId: client.id,
-                gameId : game.id
-            }
-
-            ws.send(JSON.stringify(payload))
-        })
-    </script>
+    <h1>TYPEPEER.IO</h1>
+    <div class="gameContainer">
+        <div id="newGameContainer">
+            <button id="createButton">New Game</button>
+            <p id="code"><span id="copy">📋</span></p>
+            <br>
+            <input type="text" name="gameId" id="gameId" placeholder="game id here">
+            <button id="joinButton">Join Game</button>
+        </div>
+        <div id="roundCard" class="displayNone">
+            <p>ROUND <span id="roundNumber">1</span></p>
+            <p id="timer"><span id="time">00:00</span> seconds</p>
+        </div>
+        <div id="gamePrompt">
+            <p class="question" id="q1" class="unselectable" onmousedown="return false" onselectstart="return false">Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloremque quam cum in?
+            </p>
+            <input type="text" name="inputtext" id="inputtext" placeholder="type here...">
+            <p>press <span
+                    style="color: black; background-color: rgb(56, 120, 63);padding: 0.2rem;font-weight: bold;">return
+                    ⏎</span> to submit the answer</p>
+        </div>
+    </div>
+    <script src="scripts/script.js" ></script>
+    <script  src="scripts/domScript.js"></script>
 </body>
+
 </html>
